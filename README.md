@@ -33,11 +33,12 @@ NB : The IP of the dwarf must be saved first.
 ---------------------
 2). Get last Tele Photo (Photo Mode) file from Dwarf II
 
-It will download the last Tele Photo (Photo Mode) taken from the dwarf.
+It will download the last Tele Photo (Photo Mode) or older taken from the dwarf.
 This Photo will be downloaded on the current directory or a specified directory
+Secify a number for history param : 0 (default) => last photo, 1 => penultimate and so on
 
 => direct execution : 
    python3 ./get_live_data_dwarf.py --opt 6
-   python3 ./get_live_data_dwarf.py --opt 6 --dir ImportDir
+   python3 ./get_live_data_dwarf.py --opt 6 --dir ImportDir --history
 
 NB : The IP of the dwarf must be saved first.

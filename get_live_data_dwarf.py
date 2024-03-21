@@ -61,7 +61,7 @@ def get_file_mtime(ftp, remote_file):
 def get_dir_mtime(remote_dir):
     return remote_dir[-23:]
 
-def getLastTelePhoto():
+def getLastTelePhoto(history):
     global ftp_host
     global local_photo_directory
 
@@ -71,11 +71,15 @@ def getLastTelePhoto():
     # Connect to the FTP server
     print (f"Try to connect to : {ftp_host}")
     # Connect to the FTP server
-    ftp.connect(ftp_host)
+    try:
+        ftp.connect(ftp_host)
 
-    ftp.login("Anonymous","")
-    ftp.set_pasv(True)
-    print(f"Connected to {ftp_host}")
+        ftp.login("Anonymous","")
+        ftp.set_pasv(True)
+        print(f"Connected to {ftp_host}")
+    except:
+        print("Can't connect to the Dwarf II.")
+        return
 
     # Remote directory on the FTP server to monitor
     remote_directory = '/DWARF_II/Normal_Photos'
@@ -95,24 +99,31 @@ def getLastTelePhoto():
     sorted_file_list = sorted(remote_telefiles, reverse=True)
 
     # Verify
+    found_photo = 0
     for remote_file in sorted_file_list:
         if remote_file.endswith(file_extension):
             # Found a files
-            print ("Found photo file")
+            if (found_photo==0):
+              print (f"Found last photo file")
+            else:
+              print (f"Found photo file {found_photo}")
+            if (found_photo >= history):
+                print ("Found the requested photo")
+                print(f"Find File : {remote_file} from directory: {remote_directory}")
+                remote_path = remote_directory + "/" + remote_file
+                local_path = os.path.join(local_photo_directory, remote_file)
 
-            print(f"Find File : {remote_file} from directory: {remote_directory}")
-            remote_path = remote_directory + "/" + remote_file
-            local_path = os.path.join(local_photo_directory, remote_file)
+                if (os.path.isfile(local_path)):
+                    os.remove(local_path)
 
-            if (os.path.isfile(local_path)):
-                os.remove(local_path)
+                download_file(ftp, remote_path, local_path)
+                print(f"Downloaded file: {remote_file}")
+                print(f"From directory: {remote_directory} to {local_path}")
+                print(f"New File copied : {remote_file}") 
+                break
 
-            download_file(ftp, remote_path, local_path)
-            print(f"Downloaded file: {remote_file}")
-            print(f"From directory: {remote_directory} to {local_path}")
-            print(f"New File copied : {remote_file}") 
-
-            break
+            else:
+                found_photo += 1
 
     # Move back to the parent directory
     ftp.cwd('..')
@@ -132,11 +143,15 @@ def stacking():
     # Connect to the FTP server
     print (f"Try to connect to : {ftp_host}")
     # Connect to the FTP server
-    ftp.connect(ftp_host)
+    try:
+        ftp.connect(ftp_host)
 
-    ftp.login("Anonymous","")
-    ftp.set_pasv(True)
-    print(f"Connected to {ftp_host}")
+        ftp.login("Anonymous","")
+        ftp.set_pasv(True)
+        print(f"Connected to {ftp_host}")
+    except:
+        print("Can't connect to the Dwarf II.")
+        return
 
     # Remote directory on the FTP server to monitor
     remote_directory = '/DWARF_II/Astronomy/'
@@ -266,6 +281,10 @@ def get_user_choice():
     choice = input("Enter your choice (1-6) or 0 to exit: ")
     return choice
 
+def get_user_choice_last_Photo():
+    choice = input("You can choose a photo from the last photo history (0 (default) => last photo, 1 => penultimate and so on): ")
+    return choice
+
 def option_1():
     print("You selected Option 1: Setting Current Dwarf IP")
     print("")
@@ -313,9 +332,12 @@ def option_5():
 
 def option_6():
     print("You selected Option 6: Get Last Photo (not Astro)")
-    print("")
-    # Add your Option 4 functionality here
+    # Add your Option 6 functionality here
+    nb_last_photo = get_user_choice_last_Photo()
 
+    getGetLastPhoto(nb_last_photo)
+
+def getGetLastPhoto(history = 0):
     global ftp_host
     global local_photo_directory
 
@@ -327,9 +349,14 @@ def option_6():
         print("The Current Photo Directory can't be empty!")
         return 
 
+    try:
+        history = int(history)
+    except ValueError:
+        history = 0
+
     update_config(local_photo_directory=local_photo_directory)
 
-    getLastTelePhoto()
+    getLastTelePhoto(history)
 
 def update_config(ftp_host=None, local_directory=None, last_directory=None, local_photo_directory=None ):
     config = configparser.ConfigParser()
@@ -412,9 +439,9 @@ def input_data(type):
         update_config(last_directory=last_directory)
 
     if (type == 5):
-        local_photo_directory_input = input("Enter the Local Photo Directory: ")
-        print("You entered:", local_photo_directory_input)
+        local_photo_directory_input = input("Enter the Local Photo Directory: (")
         if (local_photo_directory_input):
+            print("You entered:", local_photo_directory_input)
             local_photo_directory = local_photo_directory_input
             update_config(local_photo_directory=local_photo_directory)
         else:
@@ -462,6 +489,7 @@ if __name__ == "__main__":
         option = None
         host = None
         directory = None
+        history = 0
         i = 1
         while i < len(sys.argv):
             if sys.argv[i] == "--opt":
@@ -485,6 +513,13 @@ if __name__ == "__main__":
                 else:
                     print("Error: --ip parameter requires an argument.")
                     sys.exit(1)
+            elif sys.argv[i] == "--history":
+                if i + 1 < len(sys.argv):
+                    history = sys.argv[i + 1]
+                    i += 1
+                else:
+                    print("Error: --ip parameter requires an argument.")
+                    sys.exit(1)
             else:
                 print(f"Error: Unknown parameter '{sys.argv[i]}'.")
                 sys.exit(1)
@@ -497,7 +532,7 @@ if __name__ == "__main__":
             if directory is not None: 
                 local_photo_directory=directory
             update_config(ftp_host=ftp_host, local_photo_directory=local_photo_directory)
-            option_6()
+            getGetLastPhoto(history)
         elif option == "4" and (directory or local_directory):
             if directory is not None: 
                 local_directory=directory
