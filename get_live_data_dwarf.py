@@ -128,8 +128,9 @@ def getLastTelePhoto(history):
     # Move back to the parent directory
     ftp.cwd('..')
 
+    print(f"File saved: {local_path}")
     print(f"End downloading files")
-    display_menu()
+    return local_path
 
 
 def stacking():
@@ -336,14 +337,19 @@ def option_6():
     nb_last_photo = get_user_choice_last_Photo()
 
     getGetLastPhoto(nb_last_photo)
+    display_menu()
 
-def getGetLastPhoto(history = 0):
+
+def getGetLastPhoto(history = 0, get_config = False):
     global ftp_host
     global local_photo_directory
 
     if (not ftp_host):
         print("The Dwarf IP can't be empty!")
         return 
+
+    if (get_config):
+        read_config()
 
     if (not local_photo_directory):
         print("The Current Photo Directory can't be empty!")
@@ -356,7 +362,7 @@ def getGetLastPhoto(history = 0):
 
     update_config(local_photo_directory=local_photo_directory)
 
-    getLastTelePhoto(history)
+    return getLastTelePhoto(history)
 
 def update_config(ftp_host=None, local_directory=None, last_directory=None, local_photo_directory=None ):
     config = configparser.ConfigParser()
