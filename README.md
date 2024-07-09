@@ -8,6 +8,20 @@ Need also a working directory to copy the files.
 Without parameter a menu will be displayed.
 The parameters like ip of the dwarf II, local directory name can then be saved.
 
+---------------------
+Installation
+---------------------
+1. Clone this repository 
+
+2. Then Install the dwarf_python_api library with :
+  
+     python -m pip install -r requirements.txt
+     python -m pip install -r requirements-local.txt --target .
+
+   This project uses the dwarf_python_api library that must be installed locally in the root path of this project
+   with using the parameter --target .
+
+   Don't miss the dot at the end of the line
 
 'Run it with:
 
